@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  web1:
+    build: ./rides
+    image: rides:latest
+    container_name: rides
+    command: python rides.py
+    restart: always
+    ports:
+      - "8000:80"
+    
+  web2:
+    build: ./users
+    image: users:latest
+    container_name: users
+    command: python users.py
+    restart: always
+    ports:
+      - "8080:80"
+

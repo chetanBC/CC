@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    image: rides:latest
+    container_name: rides
+    command: python rides.py
+    restart: always
+    ports:
+      - "80:8000"
+
+

@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    image: users:latest
+    container_name: users
+    command: python users.py
+    restart: always
+    ports:
+      - "80:8000"
+
+
