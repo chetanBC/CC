@@ -1,0 +1,105 @@
+version: '3.1'
+
+services:
+
+  zoo:
+    image: zookeeper
+    restart: on-failure
+    hostname: zoo
+    container_name: zoo
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181
+
+  rmq:
+    image: rabbitmq:3.8.3-alpine
+    container_name: rmq
+
+  users:
+    build:
+      context: ./users
+      dockerfile: Dockerfile
+    image: users:latest
+    container_name: users
+    command: sh -c "python ./users/users.py"
+    volumes:
+    - .:/code
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+    - "8000:8000"
+    restart: on-failure
+
+  rides:
+    build:
+      context: ./rides
+      dockerfile: Dockerfile
+    image: rides:latest
+    container_name: rides
+    command: sh -c "python rides.py"
+    volumes:
+    - ./rides:/code
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+    - "8001:8001"
+    restart: on-failure
+
+  slave:
+    build:
+      context: ./slave/worker
+      dockerfile: Dockerfile
+    image: worker:latest
+    container_name: slave
+    command: sh -c "sleep 20 && python ./slave/worker/worker.py"
+    volumes:
+    - .:/code
+    links:
+    - rmq
+    - zoo
+    depends_on:
+    - rmq
+    - zoo
+    - master
+    restart: on-failure
+
+  master:
+    build:
+        context: ./slave/worker
+        dockerfile: Dockerfile
+    image: worker:latest
+    container_name: master
+    command: sh -c "sleep 20 && python ./slave/worker/worker.py"
+    volumes:
+    - .:/code
+    links:
+    - rmq
+    - zoo
+    depends_on:
+    - rmq
+    - zoo
+    restart: on-failure
+
+  orchestrator:
+    build:
+        context: ./slave/orch
+        dockerfile: Dockerfile
+    image: orchestrator:latest
+    container_name: orchestrator
+    command: sh -c "sleep 10 && python ./slave/orch/orch.py"
+    volumes:
+        - .:/code
+        - /var/run/docker.sock:/var/run/docker.sock:ro   
+    links:
+    - rmq
+    - zoo
+    depends_on:
+    - rmq
+    - zoo
+    - master
+    - slave
+    ports:
+      - "8002:8002"
+    restart: on-failure   
+
+  
