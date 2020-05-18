@@ -101,7 +101,7 @@ sid,csid=ms("slave")
 
 
 #create a znode for the containers (master and slave ) at the start of the orchestrator
-if(zk.exists("/worker/"+str(mid)) or zk.exists("/master"+str(sid))) :
+if(zk.exists("/worker/"+str(sid)) or zk.exists("/master")) :
     print("Node already exists")
 else:
     print("Creating...")
